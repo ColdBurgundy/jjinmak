@@ -114,6 +114,8 @@ class JinMakApp(customtkinter.CTk):
 
         self.init_ui()
 
+        self.last_checked_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
         self.too_many_losses = False  # 패배 초과 여부 저장용 플래그
 
         if self.auto_mode.get():
@@ -175,6 +177,12 @@ class JinMakApp(customtkinter.CTk):
         if not self.puuid:
             self.status_label.configure(text="PUUID 조회 실패")
             return
+        
+        today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+        # 날짜가 바뀌면 상태 초기화
+        if self.last_checked_date != today_str:
+            self.too_many_losses = False
+            self.last_checked_date = today_str
 
         wins, losses, logs = get_today_matches(self.puuid, self.config_data["api_key"])
         self.result_box.configure(state="normal")
@@ -184,7 +192,10 @@ class JinMakApp(customtkinter.CTk):
 
         self.status_label.configure(text=f"오늘 전적: {wins}승 {losses}패")
 
-        self.too_many_losses = losses > self.config_data["loss_limit"]  # 패배 초과 여부 저장
+        if losses > self.config_data["loss_limit"]:
+            self.too_many_losses = True
+        else:
+            self.too_many_losses = False
 
         if losses > self.config_data["loss_limit"]:
             if close_lol_client():
