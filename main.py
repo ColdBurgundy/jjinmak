@@ -18,7 +18,6 @@ QUEUE_ID_MAP = {
     450: "칼바람 나락"
 }
 
-
 def load_or_create_config():
     if not os.path.exists(CONFIG_FILE):
         return None
@@ -243,10 +242,64 @@ class JinMakApp(customtkinter.CTk):
         self.setting_panel = customtkinter.CTkFrame(self, width=400, height=320, corner_radius=12)
         self.setting_panel.place(relx=0.5, rely=0.5, anchor="center")
 
-        # 입력 필드
-        riot_entry = customtkinter.CTkEntry(self.setting_panel, placeholder_text="Riot ID", width=300)
-        riot_entry.insert(0, self.config_data["riot_id"])
-        riot_entry.pack(pady=10)
+        setting_title = customtkinter.CTkLabel(
+            self.setting_panel,
+            text="Setting",
+            font=("맑은 고딕", 20, "bold")
+        )
+        setting_title.pack(pady=(10, 15))
+
+        # 입력 필드 | API
+        # 1. 한 줄짜리 수평 배치 프레임 생성
+        api_row = customtkinter.CTkFrame(self.setting_panel, fg_color="transparent")
+        api_row.pack(pady=5)
+        # 2. 왼쪽 라벨
+        api_label = customtkinter.CTkLabel(api_row, text="API")
+        api_label.pack(side="left", padx=(0, 5))
+        # 3. API 입력칸
+        api_entry = customtkinter.CTkEntry(
+            api_row,
+            show="*",
+            placeholder_text="API 키를 입력하세요",
+            width=220
+        )
+        if self.config_data.get("api_key"):
+            api_entry.insert(0, self.config_data["api_key"])
+        api_entry.pack(side="left")
+        # 4. show/hide 버튼
+        def toggle_api_visibility():
+            if api_entry.cget("show") == "":
+                api_entry.configure(show="*")
+                toggle_button.configure(text="show")
+            else:
+                api_entry.configure(show="")
+                toggle_button.configure(text="hide")
+        toggle_button = customtkinter.CTkButton(
+            api_row,
+            text="show",
+            width=50,
+            height=28,
+            command=toggle_api_visibility
+        )
+        toggle_button.pack(side="left", padx=(5, 0))
+
+        # 입력 필드 | 롤 닉네임
+        # 1. 한 줄짜리 수평 배치 프레임 생성
+        riot_row = customtkinter.CTkFrame(self.setting_panel, fg_color="transparent")
+        riot_row.pack(pady=5)
+        # 2. 왼쪽 라벨
+        riot_label = customtkinter.CTkLabel(riot_row, text="소환사 닉네임")
+        riot_label.pack(side="left", padx=(0, 5))
+        # 3. 입력칸
+        riot_entry = customtkinter.CTkEntry(
+            riot_row,
+            placeholder_text="소환사 닉네임을 입력하세요",
+            width=280
+        )
+        if self.config_data.get("riot_id"):
+            riot_entry.insert(0, self.config_data["riot_id"])
+        riot_entry.pack(side="left")
+
 
         loss_option = customtkinter.CTkOptionMenu(self.setting_panel, values=["1", "2", "3", "4", "5"])
         loss_option.set(str(self.config_data["loss_limit"]))
@@ -260,6 +313,7 @@ class JinMakApp(customtkinter.CTk):
         def save():
             if not messagebox.askyesno("설정 저장", "변경 사항을 저장할까요?"):
                 return
+            self.config_data["api_key"] = api_entry.get()
             self.config_data["riot_id"] = riot_entry.get()
             self.config_data["loss_limit"] = int(loss_option.get())
             self.config_data["auto_mode"] = auto_var.get()
@@ -280,10 +334,6 @@ class JinMakApp(customtkinter.CTk):
 
         customtkinter.CTkButton(button_frame, text="저장", command=save).pack(side="left", padx=5)
         customtkinter.CTkButton(button_frame, text="취소", command=cancel).pack(side="left", padx=5)
-        customtkinter.CTkButton(button_frame, text="닫기", command=self.setting_panel.destroy).pack(side="left", padx=5)
-
-
-
 
 if __name__ == "__main__":
     app = JinMakApp()
